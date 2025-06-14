@@ -86,6 +86,24 @@ pipeline {
     }
 
     post {
+        always {
+            emailext (
+                subject: "Jenkins Test Results: ${currentBuild.fullDisplayName}",
+                body: """
+                Build Number: ${env.BUILD_NUMBER}
+                Build Status: ${currentBuild.currentResult}
+                Test Summary:
+                - Total Tests: ${currentBuild.testResultAction?.totalCount ?: 'N/A'}
+                - Passed: ${currentBuild.testResultAction?.totalCount - (currentBuild.testResultAction?.failCount ?: 0) - (currentBuild.testResultAction?.skipCount ?: 0)}
+                - Failures: ${currentBuild.testResultAction?.failCount ?: 0}
+                - Skipped: ${currentBuild.testResultAction?.skipCount ?: 0}
+                Check the build details at: ${env.BUILD_URL}
+                """,
+                to: "${env.CHANGE_AUTHOR_EMAIL ?: 'thatisowais@gmail.com'}",
+                attachLog: true,
+                mimeType: 'text/plain'
+            )
+        }
         success {
             echo '✅ Application and test pipeline completed successfully.'
         }
