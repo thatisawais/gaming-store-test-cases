@@ -87,10 +87,27 @@ pipeline {
 
     post {
         success {
-            echo '✅ Application and test pipeline completed successfully.'
+            script {
+                def authorEmail = sh(script: "git --no-pager show -s --format='%ae' HEAD", returnStdout: true).trim()
+                emailext (
+                    subject: "✅ Build Success: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                    body: "The build was successful.\n\nCheck details: ${env.BUILD_URL}",
+                    to: authorEmail,
+                    mimeType: 'text/plain'
+                )
+            }
         }
         failure {
-            echo '❌ Pipeline failed.'
+            script {
+                def authorEmail = sh(script: "git --no-pager show -s --format='%ae' HEAD", returnStdout: true).trim()
+                emailext (
+                    subject: "❌ Build Failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                    body: "The build has failed.\n\nCheck logs and details: ${env.BUILD_URL}",
+                    to: authorEmail,
+                    attachLog: true,
+                    mimeType: 'text/plain'
+                )
+            }
         }
     }
 }
