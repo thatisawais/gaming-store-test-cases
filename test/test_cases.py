@@ -10,7 +10,7 @@ import requests
 
 class GamingEcommerceTests(unittest.TestCase):
     BASE_URL = 'http://localhost:3000'
-    TIMEOUT = 120  # seconds
+    TIMEOUT = 120  # second
 
     @classmethod
     def setUpClass(cls):
