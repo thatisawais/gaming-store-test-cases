@@ -32,4 +32,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY test/ ./test/
 
 # Command to run tests
-CMD ["python", "-m", "unittest", "test.test_case"]
+CMD ["python", "-m", "unittest", "test.test_cases"]
