@@ -86,21 +86,22 @@ pipeline {
     }
 
     post {
-    success {
-        emailext (
-            subject: "✅ Build Success: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-            body: "The build was successful.\n\nCheck details: ${env.BUILD_URL}",
-            to: "${env.CHANGE_AUTHOR_EMAIL ?: 'thatisowais@gmail.com'}",
-            mimeType: 'text/plain'
-        )
+        success {
+            emailext (
+                subject: "✅ Build Success: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: "The build was successful.\n\nCheck details: ${env.BUILD_URL}",
+                to: "${env.CHANGE_AUTHOR_EMAIL ?: 'thatisowais@gmail.com'}",
+                mimeType: 'text/plain'
+            )
+        }
+        failure {
+            emailext (
+                subject: "❌ Build Failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: "The build has failed.\n\nCheck logs and details: ${env.BUILD_URL}",
+                to: "${env.CHANGE_AUTHOR_EMAIL ?: 'thatisowais@gmail.com'}",
+                attachLog: true,
+                mimeType: 'text/plain'
+            )
+        }
     }
-    failure {
-        emailext (
-            subject: "❌ Build Failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-            body: "The build has failed.\n\nCheck logs and details: ${env.BUILD_URL}",
-            to: "${env.CHANGE_AUTHOR_EMAIL ?: 'thatisowais@gmail.com'}",
-            attachLog: true,
-            mimeType: 'text/plain'
-        )
-    }
-}
+} 
