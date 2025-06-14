@@ -1,0 +1,66 @@
+pipeline {
+    agent any
+    environment {
+        APP_REPO = 'https://github.com/thatisawais/gaming-store.git'
+        TEST_REPO = 'https://github.com/thatisawais/gaming-store-test-cases.git'
+    }
+    stages {
+        stage('Checkout Application') {
+            steps {
+                dir('app') {
+                    git url: "${APP_REPO}", branch: 'main'
+                }
+            }
+        }
+        stage('Checkout Tests') {
+            steps {
+                dir('tests') {
+                    git url: "${TEST_REPO}", branch: 'main'
+                }
+            }
+        }
+        stage('Build Application Docker Image') {
+            steps {
+                dir('app') {
+                    script {
+                        docker.build('gaming-ecommerce-app')
+                    }
+                }
+            }
+        }
+        stage('Build Test Docker Image') {
+            steps {
+                dir('tests') {
+                    script {
+                        docker.build('gaming-ecommerce-tests')
+                    }
+                }
+            }
+        }
+        stage('Run Tests') {
+            steps {
+                script {
+                    // Run application container
+                    def appContainer = docker.image('gaming-ecommerce-app').run('--name app -p 3000:3000')
+                    try {
+                        // Run test container, linking to app container
+                        docker.image('gaming-ecommerce-tests').inside('--link app:app') {
+                            sh 'python -m unittest test.test_case'
+                        }
+                    } finally {
+                        // Stop and remove app container
+                        appContainer.stop()
+                    }
+                }
+            }
+        }
+    }
+    post {
+        success {
+            echo "Build succeeded ✅"
+        }
+        failure {
+            echo "Build failed ❌"
+        }
+    }
+}
