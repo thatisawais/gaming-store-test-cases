@@ -4,13 +4,15 @@ pipeline {
     environment {
         APP_REPO = 'https://github.com/thatisawais/gaming-store.git'
         TEST_REPO = 'https://github.com/thatisawais/gaming-store-test-cases.git'
+        APP_IMAGE = 'gaming-ecommerce-app'
+        TEST_IMAGE = 'gaming-ecommerce-tests'
     }
 
     stages {
         stage('Checkout Application') {
             steps {
                 dir('app') {
-                    git url: "${APP_REPO}", branch: 'main'
+                    git branch: 'main', url: "${APP_REPO}"
                 }
             }
         }
@@ -18,7 +20,7 @@ pipeline {
         stage('Checkout Tests') {
             steps {
                 dir('tests') {
-                    git url: "${TEST_REPO}", branch: 'main'
+                    git branch: 'main', url: "${TEST_REPO}"
                 }
             }
         }
@@ -26,7 +28,9 @@ pipeline {
         stage('Build Application Docker Image') {
             steps {
                 dir('app') {
-                    sh 'docker build -t gaming-ecommerce-app .'
+                    script {
+                        sh 'docker build -t ${APP_IMAGE} .'
+                    }
                 }
             }
         }
@@ -34,22 +38,48 @@ pipeline {
         stage('Build Test Docker Image') {
             steps {
                 dir('tests') {
-                    sh 'docker build -t gaming-ecommerce-tests .'
+                    script {
+                        sh 'docker build -t ${TEST_IMAGE} .'
+                    }
                 }
             }
         }
 
-        stage('Run Tests') {
+        stage('Start Application Container') {
             steps {
                 script {
-                    sh 'docker run -d --name gaming-app -p 3000:3000 gaming-ecommerce-app'
+                    sh '''
+                        # Stop and remove existing container
+                        if docker ps -q --filter "name=gaming-app"; then
+                            docker stop gaming-app || true
+                            docker rm gaming-app || true
+                        fi
 
-                    try {
-                        sh 'docker run --rm --network container:gaming-app gaming-ecommerce-tests python3 -m unittest test.test_case'
-                    } finally {
-                        sh 'docker stop gaming-app || true'
-                        sh 'docker rm gaming-app || true'
-                    }
+                        # Free port 3000 if used
+                        USED_CONTAINER=$(docker ps --filter "publish=3000" -q)
+                        if [ ! -z "$USED_CONTAINER" ]; then
+                            docker stop $USED_CONTAINER || true
+                            docker rm $USED_CONTAINER || true
+                        fi
+
+                        # Start application container
+                        docker run -d --name gaming-app -p 3000:3000 ${APP_IMAGE}
+
+                        # Wait for app to start
+                        echo "⏳ Waiting for app to start..."
+                        sleep 10
+                    '''
+                }
+            }
+        }
+
+        stage('Run Tests Against App') {
+            steps {
+                script {
+                    sh '''
+                        echo "🚀 Running tests..."
+                        docker run --rm --network host ${TEST_IMAGE}
+                    '''
                 }
             }
         }
@@ -57,10 +87,10 @@ pipeline {
 
     post {
         success {
-            echo '✅ Build succeeded!'
+            echo '✅ Application and test pipeline completed successfully.'
         }
         failure {
-            echo '❌ Build failed.'
+            echo '❌ Pipeline failed.'
         }
     }
 }
