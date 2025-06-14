@@ -1,9 +1,11 @@
 pipeline {
     agent any
+
     environment {
         APP_REPO = 'https://github.com/thatisawais/gaming-store.git'
         TEST_REPO = 'https://github.com/thatisawais/gaming-store-test-cases.git'
     }
+
     stages {
         stage('Checkout Application') {
             steps {
@@ -12,6 +14,7 @@ pipeline {
                 }
             }
         }
+
         stage('Checkout Tests') {
             steps {
                 dir('tests') {
@@ -19,48 +22,45 @@ pipeline {
                 }
             }
         }
+
         stage('Build Application Docker Image') {
             steps {
                 dir('app') {
-                    script {
-                        docker.build('gaming-ecommerce-app')
-                    }
+                    sh 'docker build -t gaming-ecommerce-app .'
                 }
             }
         }
+
         stage('Build Test Docker Image') {
             steps {
                 dir('tests') {
-                    script {
-                        docker.build('gaming-ecommerce-tests')
-                    }
+                    sh 'docker build -t gaming-ecommerce-tests .'
                 }
             }
         }
+
         stage('Run Tests') {
             steps {
                 script {
-                    // Run application container
-                    def appContainer = docker.image('gaming-ecommerce-app').run('--name app -p 3000:3000')
+                    sh 'docker run -d --name gaming-app -p 3000:3000 gaming-ecommerce-app'
+
                     try {
-                        // Run test container, linking to app container
-                        docker.image('gaming-ecommerce-tests').inside('--link app:app') {
-                            sh 'python -m unittest test.test_case'
-                        }
+                        sh 'docker run --rm --network container:gaming-app gaming-ecommerce-tests python3 -m unittest test.test_case'
                     } finally {
-                        // Stop and remove app container
-                        appContainer.stop()
+                        sh 'docker stop gaming-app || true'
+                        sh 'docker rm gaming-app || true'
                     }
                 }
             }
         }
     }
+
     post {
         success {
-            echo "Build succeeded ✅"
+            echo '✅ Build succeeded!'
         }
         failure {
-            echo "Build failed ❌"
+            echo '❌ Build failed.'
         }
     }
 }
