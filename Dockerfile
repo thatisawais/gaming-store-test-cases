@@ -26,7 +26,7 @@ RUN wget -q "https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/${CHROM
 # Set working directory
 WORKDIR /app
 
-# Copy requirements and install dependencie
+# Copy requirements and install dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
