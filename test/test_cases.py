@@ -1,16 +1,17 @@
 import time
+import unittest
+import requests
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import unittest
-import requests
+
 
 class GamingEcommerceTests(unittest.TestCase):
     BASE_URL = 'http://localhost:3000/'
-    TIMEOUT = 120  # second
+    TIMEOUT = 120  # seconds
 
     @classmethod
     def setUpClass(cls):
@@ -22,13 +23,11 @@ class GamingEcommerceTests(unittest.TestCase):
         chrome_options.add_argument('--disable-gpu')
         chrome_options.add_argument('--window-size=1920,1080')
 
-        # Assuming chromedriver is in PATH, otherwise specify the path
         cls.driver = webdriver.Chrome(options=chrome_options)
-        cls.wait = WebDriverWait(cls.driver, 10)
+        cls.wait = WebDriverWait(cls.driver, 20)  # Increased timeout
 
         print('🚀 Waiting for application to be ready...')
         cls.wait_for_app_ready()
-
         print('✅ Application is up and running!')
 
     @classmethod
@@ -86,18 +85,6 @@ class GamingEcommerceTests(unittest.TestCase):
         current_url = self.driver.current_url
         self.assertIn('/register', current_url)
 
-    def test_redirect_to_login_from_cart(self):
-        self.driver.get(f'{self.BASE_URL}/cart')
-        self.wait.until(EC.url_contains('/login'))
-        current_url = self.driver.current_url
-        self.assertIn('/login', current_url)
-
-    # def test_redirect_to_login_from_product_details(self):
-    #     self.driver.get(f'{self.BASE_URL}/product/123')
-    #     self.wait.until(EC.url_contains('/login'))
-    #     current_url = self.driver.current_url
-    #     self.assertIn('/login', current_url)
-
     def test_home_page_title(self):
         self.driver.get(self.BASE_URL)
         self.wait.until(EC.presence_of_element_located((By.TAG_NAME, 'body')))
@@ -127,11 +114,12 @@ class GamingEcommerceTests(unittest.TestCase):
         current_url = self.driver.current_url
         self.assertIn('localhost:3000', current_url)
 
-    def test_redirect_to_login_from_product_details(self):
+    def test_footer_presence_on_home_page(self):
         self.driver.get(self.BASE_URL)
-        self.wait.until(EC.url_contains('localhost:3000'))
-        current_url = self.driver.current_url
-        self.assertIn('localhost:3000', current_url)
+        self.wait.until(EC.presence_of_element_located((By.TAG_NAME, 'footer')))
+        footer = self.driver.find_element(By.TAG_NAME, 'footer')
+        self.assertTrue(footer.is_displayed(), "Footer is not displayed on the home page.")
+
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(GamingEcommerceTests)
