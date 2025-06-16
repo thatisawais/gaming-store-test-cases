@@ -67,7 +67,7 @@ pipeline {
 
                         # Wait for app to start
                         echo "⏳ Waiting for app to start..."
-                        sleep 60
+                        sleep 30
                     '''
                 }
             }
