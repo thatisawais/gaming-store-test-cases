@@ -1,6 +1,6 @@
 FROM python:3.12-slim
 
-# Install dependencie
+# Install dependencies
 RUN apt-get update && apt-get install -y \
     wget \
     unzip \
