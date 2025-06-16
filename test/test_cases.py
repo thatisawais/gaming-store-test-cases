@@ -2,7 +2,6 @@ import time
 import unittest
 import requests
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -10,7 +9,7 @@ from selenium.webdriver.support import expected_conditions as EC
 
 
 class GamingEcommerceTests(unittest.TestCase):
-    BASE_URL = 'http://localhost:3000/'
+    BASE_URL = 'http://54.193.129.133:3000/'
     TIMEOUT = 120  # seconds
 
     @classmethod
@@ -38,9 +37,9 @@ class GamingEcommerceTests(unittest.TestCase):
     @staticmethod
     def is_server_running():
         try:
-            response = requests.get(GamingEcommerceTests.BASE_URL, timeout=1)
+            response = requests.get(GamingEcommerceTests.BASE_URL, timeout=5)
             return 200 <= response.status_code < 400
-        except requests.ConnectionError:
+        except requests.RequestException:
             return False
 
     @classmethod
@@ -57,50 +56,42 @@ class GamingEcommerceTests(unittest.TestCase):
                 if title:
                     return
             except Exception as e:
-                print(f'⏳ App not ready, retrying ({i + 1}/{retries})...', str(e))
+                print(f'⏳ App not ready, retrying ({i + 1}/{retries})... {str(e)}')
                 time.sleep(delay)
-        raise Exception('❌ Application not reachable after retries. Ensure the server is running on localhost:3000.')
+        raise Exception(f'❌ Application not reachable after retries. Ensure the server is running at {cls.BASE_URL}')
 
     def test_load_home_page(self):
         self.driver.get(self.BASE_URL)
         self.wait.until(EC.presence_of_element_located((By.TAG_NAME, 'body')))
-        title = self.driver.title
-        self.assertTrue(title)
+        self.assertTrue(self.driver.title)
 
     def test_load_products_page(self):
-        self.driver.get(f'{self.BASE_URL}/products')
+        self.driver.get(f'{self.BASE_URL}products')
         self.wait.until(EC.url_contains('/products'))
-        current_url = self.driver.current_url
-        self.assertIn('/products', current_url)
+        self.assertIn('/products', self.driver.current_url)
 
     def test_navigate_to_login_page(self):
-        self.driver.get(f'{self.BASE_URL}/login')
+        self.driver.get(f'{self.BASE_URL}login')
         self.wait.until(EC.url_contains('/login'))
-        current_url = self.driver.current_url
-        self.assertIn('/login', current_url)
+        self.assertIn('/login', self.driver.current_url)
 
     def test_navigate_to_register_page(self):
-        self.driver.get(f'{self.BASE_URL}/register')
+        self.driver.get(f'{self.BASE_URL}register')
         self.wait.until(EC.url_contains('/register'))
-        current_url = self.driver.current_url
-        self.assertIn('/register', current_url)
+        self.assertIn('/register', self.driver.current_url)
 
     def test_home_page_title(self):
         self.driver.get(self.BASE_URL)
         self.wait.until(EC.presence_of_element_located((By.TAG_NAME, 'body')))
-        title = self.driver.title
-        self.assertNotEqual(title, '')
-        self.assertTrue(title)
+        self.assertNotEqual(self.driver.title, '')
 
     def test_products_page_title(self):
-        self.driver.get(f'{self.BASE_URL}/products')
+        self.driver.get(f'{self.BASE_URL}products')
         self.wait.until(EC.presence_of_element_located((By.TAG_NAME, 'body')))
-        title = self.driver.title
-        self.assertNotEqual(title, '')
-        self.assertTrue(title)
+        self.assertNotEqual(self.driver.title, '')
 
     def test_basic_routes_no_errors(self):
-        routes = ['/', '/products', '/login', '/register']
+        routes = ['', 'products', 'login', 'register']
         for route in routes:
             self.driver.get(f'{self.BASE_URL}{route}')
             self.wait.until(EC.presence_of_element_located((By.TAG_NAME, 'body')))
@@ -108,11 +99,10 @@ class GamingEcommerceTests(unittest.TestCase):
             self.assertNotIn('Cannot GET', page_source)
             self.assertNotIn('404', page_source)
 
-    def test_application_running_on_localhost(self):
+    def test_application_running_on_server(self):
         self.driver.get(self.BASE_URL)
-        self.wait.until(EC.url_contains('localhost:3000'))
-        current_url = self.driver.current_url
-        self.assertIn('localhost:3000', current_url)
+        self.wait.until(EC.url_contains('54.193.129.133'))
+        self.assertIn('54.193.129.133', self.driver.current_url)
 
     def test_footer_presence_on_home_page(self):
         self.driver.get(self.BASE_URL)
