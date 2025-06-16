@@ -9,7 +9,7 @@ import unittest
 import requests
 
 class GamingEcommerceTests(unittest.TestCase):
-    BASE_URL = 'http://localhost:3000'
+    BASE_URL = 'http://54.193.129.133:3000/'
     TIMEOUT = 120  # second
 
     @classmethod
