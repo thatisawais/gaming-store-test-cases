@@ -7,7 +7,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-# Test cases 
+# Test case
 class GamingEcommerceTests(unittest.TestCase):
     BASE_URL = 'http://54.193.129.133:3000/'
     TIMEOUT = 120  # seconds
